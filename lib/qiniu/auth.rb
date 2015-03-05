@@ -4,7 +4,6 @@
 require 'hmac-sha1'
 require 'uri'
 require 'cgi'
-
 require 'qiniu/exceptions'
 
 module Qiniu
@@ -32,13 +31,15 @@ module Qiniu
         def initialize(bucket,
                        key = nil,
                        expires_in = DEFAULT_AUTH_SECONDS,
-                       deadline = nil)
+                       deadline = nil,
+                       return_body=nil)
           ### 设定scope参数（必填项目）
           self.scope!(bucket, key)
 
           ### 设定deadline参数（必填项目）
           @expires_in = expires_in
           @deadline   = Auth.calculate_deadline(expires_in, deadline)
+          @return_body = return_body
         end # initialize
 
         PARAMS = {
@@ -99,6 +100,10 @@ module Qiniu
         def expires_in
           return @expires_in
         end # expires_in
+
+        def return_body
+          return @return_body
+        end 
 
         def allow_mime_list! (list)
           @mime_limit = list
@@ -178,7 +183,6 @@ module Qiniu
           ### 返回下载授权URL
           return "#{download_url}&token=#{dntoken}"
         end # authorize_download_url
-
         ### 对包含中文或其它 utf-8 字符的 Key 做下载授权
         def authorize_download_url_2(domain, key, args = EMPTY_ARGS)
           url_encoded_key = CGI::escape(key)
